@@ -8,7 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+// Asegúrate de tener este using hasta arriba del archivo si no está:
+// using Microsoft.EntityFrameworkCore;
+
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
