@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -57,4 +58,107 @@ h1:focus {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+:root {
+    /* Paleta de colores de la estética */
+    --primary-color: #DDA7A5; /* Rosa pastel/Blush elegante */
+    --primary-hover: #c48c8a;
+    --background-color: #FDFBFB; /* Blanco perla */
+    --text-main: #333333; /* Gris oscuro, más suave que el negro puro */
+    --text-muted: #777777;
+    --card-bg: #FFFFFF;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-main);
+}
+
+/* --- Estructura Principal --- */
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Navegación Superior --- */
+.header-estetica {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 4rem;
+    background-color: var(--card-bg);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+    .header-estetica .logo h2 {
+        margin: 0;
+        color: var(--primary-color);
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+.top-nav a {
+    text-decoration: none;
+    color: var(--text-main);
+    margin-left: 2rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+    .top-nav a:hover, .top-nav a:active {
+        color: var(--primary-color);
+    }
+
+/* --- Contenedor de las páginas --- */
+.main-content {
+    flex: 1;
+    padding: 3rem 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- Footer --- */
+.footer-estetica {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: var(--card-bg);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* --- Estilos para Tablas y Tarjetas (Te servirán para Clientes y Citas) --- */
+.card-estetica {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    margin-bottom: 2rem;
+}
+
+.btn-estetica {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+    .btn-estetica:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-2px);
+    }
+
+/* Ocultar el UI de error de Blazor por defecto para que no arruine el diseño */
+#blazor-error-ui {
+    display: none !important;
 }

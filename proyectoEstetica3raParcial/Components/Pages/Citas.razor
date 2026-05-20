@@ -1,0 +1,54 @@
+﻿@page "/citas"
+
+<PageTitle>Agendar Cita</PageTitle>
+
+<div class="card-estetica">
+    <h2 style="color: var(--primary-color);">Agendar Nueva Cita</h2>
+    <p style="color: var(--text-muted);">Pantalla de integración: Vincula Clientes de tu BD con Servicios de la API.</p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; background: #fafafa; padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem;">
+        <div>
+            <label style="font-weight: 500;">1. Seleccionar Cliente (Tu Azure SQL) [cite: 83]</label>
+            <select style="width: 100%; padding: 0.8rem; border-radius: 5px; margin-top: 0.5rem; border: 1px solid #ccc;">
+                <option value="">-- Selecciona un cliente registrado --</option>
+            </select>
+        </div>
+
+        <div>
+            <label style="font-weight: 500;">2. Fecha y Hora</label>
+            <input type="datetime-local" style="width: 100%; padding: 0.8rem; border-radius: 5px; margin-top: 0.5rem; border: 1px solid #ccc;" />
+        </div>
+
+        <div style="grid-column: span 2;">
+            <label style="font-weight: 500;">3. Seleccionar Servicio (Desde API del Maestro) [cite: 83]</label>
+            <select style="width: 100%; padding: 0.8rem; border-radius: 5px; margin-top: 0.5rem; border: 1px solid #ccc;">
+                <option value="">-- Buscando servicios disponibles en la API... --</option>
+            </select>
+        </div>
+    </div>
+
+    <div style="text-align: right; margin-top: 2rem;">
+        <button class="btn-estetica" style="padding: 1rem 2.5rem;">🗓️ Confirmar y Registrar Cita</button>
+    </div>
+</div>
+
+<div class="card-estetica" style="margin-top: 2rem;">
+    <h3 style="color: var(--primary-color);">Historial de Citas Operativas</h3>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 1rem; text-align: left;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--primary-color);">
+                <th style="padding: 0.8rem;">ID Cita</th>
+                <th style="padding: 0.8rem;">Cliente</th>
+                <th style="padding: 0.8rem;">Fecha</th>
+                <th style="padding: 0.8rem;">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    No hay citas agendadas en el sistema.
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

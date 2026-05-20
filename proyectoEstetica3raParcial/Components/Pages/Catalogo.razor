@@ -1,0 +1,24 @@
+﻿@page "/catalogo"
+
+<PageTitle>Catálogo de Servicios</PageTitle>
+
+<div class="card-estetica">
+    <h2 style="color: var(--primary-color);">Catálogo de Servicios</h2>
+    <p style="color: var(--text-muted);">Datos maestros consultados desde la API externa[cite: 21, 22].</p>
+
+    <div style="margin-bottom: 2rem;">
+        <label>Filtrar por Especialidad:</label>
+        <select style="padding: 0.5rem; margin-left: 1rem; border-radius: 5px; border: 1px solid #ccc;">
+            <option value="">Todas las especialidades</option>
+            <option value="1">Cabello</option>
+            <option value="2">Uñas</option>
+            <option value="3">Colorimetría</option>
+        </select>
+        <button class="btn-estetica" style="margin-left: 1rem; padding: 0.5rem 1.5rem;">Filtrar</button>
+    </div>
+
+    @* Condición de carga obligatoria *@
+    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+        <p>⏳ Cargando catálogo de servicios desde la API... [cite: 77]</p>
+    </div>
+</div>
