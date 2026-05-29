@@ -7,7 +7,7 @@ Este repositorio contiene el código fuente del Sistema de Información Web desa
 **Nombre Completo:** Joshua Adrián Aburto Beltrán
 **Número de Cuenta:** 20216672
 **Negocio Asignado:** Estética / Salón (Glamour Spa) 
-**URL de la API Consumida:** `[https://api-udec-pweb.azurewebsites.net](https://api-udec-pweb-aedec9hxbugye0am.westus3-01.azurewebsites.net/api/salud/servicios)` 
+**URL de la API Consumida:** `[https://api-udec-pweb.azurewebsites.net](https://api-udec-pweb-aedec9hxbugye0am.westus3-01.azurewebsites.net/api/salud/servicios)](https://6a195ede489e47157519dc4f.mockapi.io/Servicios)` 
 
 ---
 
