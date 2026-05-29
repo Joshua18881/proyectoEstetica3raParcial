@@ -1,24 +1,109 @@
 ﻿@page "/catalogo"
+@using System.Net.Http.Json
+@using proyectoEstetica3raParcial.Models
+@inject HttpClient Http
+@rendermode InteractiveServer
 
-<PageTitle>Catálogo de Servicios</PageTitle>
+<PageTitle>Catálogo de Servicios - Glamour Spa</PageTitle>
 
-<div class="card-estetica">
-    <h2 style="color: var(--primary-color);">Catálogo de Servicios</h2>
-    <p style="color: var(--text-muted);">Datos maestros consultados desde la API externa[cite: 21, 22].</p>
+<div class="card-estetica" style="margin: 1rem; padding: 2rem;">
+    <h2 style="color: var(--primary-color); margin-bottom: 1.5rem;">✨ Nuestro Catálogo de Servicios</h2>
 
-    <div style="margin-bottom: 2rem;">
-        <label>Filtrar por Especialidad:</label>
-        <select style="padding: 0.5rem; margin-left: 1rem; border-radius: 5px; border: 1px solid #ccc;">
-            <option value="">Todas las especialidades</option>
-            <option value="1">Cabello</option>
-            <option value="2">Uñas</option>
-            <option value="3">Colorimetría</option>
+    <div style="margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+        <label style="font-weight: bold;">Filtrar por Especialidad:</label>
+        <select @onchange="OnEspecialidadChanged" style="padding: 0.6rem; border-radius: 5px; border: 1px solid #ccc; min-width: 200px;">
+            <option value="0">--- Todas las Especialidades ---</option>
+            <option value="1">Cabello / Estilismo</option>
+            <option value="2">Uñas y Manicura</option>
+            <option value="3">Tratamientos Faciales</option>
+            <option value="4">Masajes y Relajación</option>
         </select>
-        <button class="btn-estetica" style="margin-left: 1rem; padding: 0.5rem 1.5rem;">Filtrar</button>
     </div>
 
-    @* Condición de carga obligatoria *@
-    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
-        <p>⏳ Cargando catálogo de servicios desde la API... [cite: 77]</p>
-    </div>
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--primary-color); background-color: #f9f9f9;">
+                <th style="padding: 1rem;">Servicio</th>
+                <th style="padding: 1rem;">Descripción</th>
+                <th style="padding: 1rem;">Especialidad</th>
+                <th style="padding: 1rem;">Duración</th>
+                <th style="padding: 1rem;">Precio</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (servicios == null)
+            {
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic;">
+                        ⏳ Cargando catálogo de servicios desde la API...
+                    </td>
+                </tr>
+            }
+            else if (!servicios.Any())
+            {
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                        No se encontraron servicios en esta categoría.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var servicio in servicios)
+                {
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 1rem; font-weight: bold; color: #333;">@servicio.Nombre</td>
+                        <td style="padding: 1rem; color: #666; font-size: 0.9rem;">@servicio.Descripcion</td>
+                        <td style="padding: 1rem;"><span style="background: #e3f2fd; color: #0d47a1; padding: 0.3rem 0.6rem; border-radius: 15px; font-size: 0.85rem;">@servicio.Especialidad</span></td>
+                        <td style="padding: 1rem; color: #555;">@servicio.Duracion min</td>
+                        <td style="padding: 1rem; font-weight: bold; color: #2e7d32;">$@servicio.Precio.ToString("N2")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
 </div>
+
+@code {
+    private List<ServicioSalud>? servicios;
+    private int especialidadSeleccionada = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatosApi();
+    }
+
+    private async Task CargarDatosApi()
+    {
+        try
+        {
+            servicios = null; // Activa el mensaje de "Cargando..."
+
+            if (especialidadSeleccionada == 0)
+            {
+                // Endpoint 1: Listado General (Usa ruta relativa gracias a tu Program.cs)
+                servicios = await Http.GetFromJsonAsync<List<ServicioSalud>>("api/salud/servicios");
+            }
+            else
+            {
+                // Endpoint 2: Filtrado por Especialidad
+                servicios = await Http.GetFromJsonAsync<List<ServicioSalud>>($"api/salud/servicios/especialidad/{especialidadSeleccionada}");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Manejo de errores básico si la API llega a estar caída
+            servicios = new List<ServicioSalud>(); 
+            Console.WriteLine($"Error al conectar con la API: {ex.Message}");
+        }
+    }
+
+    private async Task OnEspecialidadChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int id))
+        {
+            especialidadSeleccionada = id;
+            await CargarDatosApi(); // Recarga los datos filtrados
+        }
+    }
+}

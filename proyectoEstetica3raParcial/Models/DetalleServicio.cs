@@ -12,15 +12,16 @@ namespace proyectoEstetica3raParcial.Models
         public int CitaId { get; set; }
 
         [ForeignKey("CitaId")]
-        public virtual Cita Cita { get; set; } = null!;
+        public virtual Cita? Cita { get; set; }
+
+        // Esta es la propiedad que causaba error, aquí la unificamos:
+        [Required]
+        public int ProductoApiId { get; set; }
 
         [Required]
-        public int ServicioId { get; set; } // ID de la API del maestro
+        public int Cantidad { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal PrecioAplicado { get; set; }
-
-        public int Cantidad { get; set; } = 1;
+        public decimal Precio { get; set; }
     }
 }

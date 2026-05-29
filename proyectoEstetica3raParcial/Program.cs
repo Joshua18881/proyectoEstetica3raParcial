@@ -4,12 +4,11 @@ using proyectoEstetica3raParcial.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddHttpClient();
 
-// Asegúrate de tener este using hasta arriba del archivo si no está:
-// using Microsoft.EntityFrameworkCore;
+// Add services to the container.
+builder.Services.AddRazorComponents() 
+    .AddInteractiveServerComponents();
 
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

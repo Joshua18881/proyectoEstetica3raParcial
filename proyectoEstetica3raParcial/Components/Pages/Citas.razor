@@ -1,54 +1,181 @@
 ﻿@page "/citas"
+@using proyectoEstetica3raParcial.Models
+@using proyectoEstetica3raParcial.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject HttpClient Http
+@rendermode InteractiveServer
 
-<PageTitle>Agendar Cita</PageTitle>
+<PageTitle>Agendar Cita - Glamour Spa</PageTitle>
 
-<div class="card-estetica">
-    <h2 style="color: var(--primary-color);">Agendar Nueva Cita</h2>
-    <p style="color: var(--text-muted);">Pantalla de integración: Vincula Clientes de tu BD con Servicios de la API.</p>
+<div class="card-estetica" style="margin: 1rem; padding: 2rem;">
+    <h2 style="color: var(--primary-color); margin-bottom: 0.5rem;">🗓️ Agendar Nueva Cita</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Pantalla de integración: Vincula Clientes de tu BD con Servicios de la API.</p>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; background: #fafafa; padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem;">
+    @if (!string.IsNullOrEmpty(mensajeExito))
+    {
+        <div style="background-color: #d4edda; color: #155724; padding: 1rem; border-radius: 5px; margin-bottom: 1.5rem; font-weight: bold;">
+            @mensajeExito
+        </div>
+    }
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; background: #fafafa; padding: 1.5rem; border-radius: 8px;">
+
         <div>
-            <label style="font-weight: 500;">1. Seleccionar Cliente (Tu Azure SQL) [cite: 83]</label>
-            <select style="width: 100%; padding: 0.8rem; border-radius: 5px; margin-top: 0.5rem; border: 1px solid #ccc;">
-                <option value="">-- Selecciona un cliente registrado --</option>
+            <label style="font-weight: bold; color: #333;">1. Seleccionar Cliente</label>
+            <select @bind="clienteSeleccionadoId" style="width: 100%; padding: 0.8rem; border-radius: 5px; margin-top: 0.5rem; border: 1px solid #ccc;">
+                <option value="0">-- Selecciona un cliente registrado --</option>
+                @if (listaClientes != null)
+                {
+                    @foreach (var cliente in listaClientes)
+                    {
+                        <option value="@cliente.ClienteId">@cliente.Nombre @cliente.Apellido</option>
+                    }
+                }
             </select>
         </div>
 
         <div>
-            <label style="font-weight: 500;">2. Fecha y Hora</label>
-            <input type="datetime-local" style="width: 100%; padding: 0.8rem; border-radius: 5px; margin-top: 0.5rem; border: 1px solid #ccc;" />
+            <label style="font-weight: bold; color: #333;">2. Fecha y Hora</label>
+            <input type="datetime-local" @bind="fechaCita" style="width: 100%; padding: 0.8rem; border-radius: 5px; margin-top: 0.5rem; border: 1px solid #ccc;" />
         </div>
 
         <div style="grid-column: span 2;">
-            <label style="font-weight: 500;">3. Seleccionar Servicio (Desde API del Maestro) [cite: 83]</label>
-            <select style="width: 100%; padding: 0.8rem; border-radius: 5px; margin-top: 0.5rem; border: 1px solid #ccc;">
-                <option value="">-- Buscando servicios disponibles en la API... --</option>
+            <label style="font-weight: bold; color: #333;">3. Seleccionar Servicio</label>
+            <select @bind="servicioSeleccionadoId" style="width: 100%; padding: 0.8rem; border-radius: 5px; margin-top: 0.5rem; border: 1px solid #ccc;">
+                <option value="0">-- Selecciona un servicio disponible --</option>
+                @if (listaServiciosApi == null)
+                {
+                    <option disabled>⏳ Buscando servicios en la API...</option>
+                }
+                else
+                {
+                    @foreach (var servicio in listaServiciosApi)
+                    {
+                        <option value="@servicio.Id">@servicio.Nombre — $@servicio.Precio.ToString("N2") (@servicio.Duracion min)</option>
+                    }
+                }
             </select>
         </div>
     </div>
 
     <div style="text-align: right; margin-top: 2rem;">
-        <button class="btn-estetica" style="padding: 1rem 2.5rem;">🗓️ Confirmar y Registrar Cita</button>
+        <button class="btn-estetica" @onclick="GuardarCita" style="padding: 1rem 2.5rem; background-color: var(--primary-color); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
+            🗓️ Confirmar y Registrar Cita
+        </button>
     </div>
 </div>
 
-<div class="card-estetica" style="margin-top: 2rem;">
-    <h3 style="color: var(--primary-color);">Historial de Citas Operativas</h3>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 1rem; text-align: left;">
+<div class="card-estetica" style="margin: 2rem 1rem; padding: 2rem;">
+    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Historial de Citas Operativas</h3>
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
         <thead>
-            <tr style="border-bottom: 2px solid var(--primary-color);">
+            <tr style="border-bottom: 2px solid var(--primary-color); background-color: #f9f9f9;">
                 <th style="padding: 0.8rem;">ID Cita</th>
                 <th style="padding: 0.8rem;">Cliente</th>
-                <th style="padding: 0.8rem;">Fecha</th>
+                <th style="padding: 0.8rem;">Fecha y Hora</th>
                 <th style="padding: 0.8rem;">Estado</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-                    No hay citas agendadas en el sistema.
-                </td>
-            </tr>
+            @if (historialCitas == null || !historialCitas.Any())
+            {
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                        No hay citas agendadas en el sistema.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var cita in historialCitas)
+                {
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 0.8rem; font-weight: bold;">#@cita.CitaId</td>
+                        <td style="padding: 0.8rem;">@(cita.Cliente != null ? $"{cita.Cliente.Nombre} {cita.Cliente.Apellido}" : "Cliente Anonimo")</td>
+                        <td style="padding: 0.8rem;">@cita.FechaHora.ToString("dd/MM/yyyy hh:mm tt")</td>
+                        <td style="padding: 0.8rem;"><span style="background: #fff3cd; color: #856404; padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.85rem;">@cita.Estado</span></td>
+                    </tr>
+                }
+            }
         </tbody>
     </table>
 </div>
+
+@code {
+    private List<Cliente>? listaClientes;
+    private List<ServicioSalud>? listaServiciosApi;
+    private List<Cita>? historialCitas;
+
+    private int clienteSeleccionadoId = 0;
+    private int servicioSeleccionadoId = 0;
+    private DateTime fechaCita = DateTime.Now;
+    private string mensajeExito = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatosLocales();
+        await CargarServiciosApi();
+    }
+
+    private async Task CargarDatosLocales()
+    {
+        using var context = DbFactory.CreateDbContext();
+        listaClientes = await context.Clientes.OrderBy(c => c.Nombre).ToListAsync();
+        historialCitas = await context.Citas.Include(c => c.Cliente).OrderByDescending(c => c.CitaId).ToListAsync();
+    }
+
+    private async Task CargarServiciosApi()
+    {
+        try
+        {
+            listaServiciosApi = await Http.GetFromJsonAsync<List<ServicioSalud>>("https://api-udec-pweb-aedec9hxbugye0am.westus3-01.azurewebsites.net/api/salud/servicios");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"API caida, usando respaldo: {ex.Message}");
+            listaServiciosApi = new List<ServicioSalud>
+            {
+                new ServicioSalud { Id = 1, Nombre = "Corte de Pelo Estilo Glamour (API Caida)", Precio = 280.00m, Duracion = 30 },
+                new ServicioSalud { Id = 2, Nombre = "Manicura y Gelish (API Caida)", Precio = 190.00m, Duracion = 45 }
+            };
+        }
+    }
+
+    private async Task GuardarCita()
+    {
+        if (clienteSeleccionadoId == 0 || servicioSeleccionadoId == 0) return;
+
+        using var context = DbFactory.CreateDbContext();
+
+        var nuevaCita = new Cita
+        {
+            ClienteId = clienteSeleccionadoId,
+            FechaHora = fechaCita, 
+            Estado = "Agendada"
+        };
+
+        context.Citas.Add(nuevaCita);
+        await context.SaveChangesAsync();
+
+        var servicioIdApi = listaServiciosApi?.FirstOrDefault(s => s.Id == servicioSeleccionadoId);
+
+        var detalle = new DetalleServicio
+        {
+            CitaId = nuevaCita.CitaId,
+            ProductoApiId = servicioSeleccionadoId,
+            Cantidad = 1,
+            Precio = servicioIdApi?.Precio ?? 0
+        };
+
+        context.DetallesServicios.Add(detalle);
+        await context.SaveChangesAsync();
+
+        mensajeExito = "✨ ¡Cita agendada con éxito! Se guardó en Azure SQL vinculando el servicio de la API.";
+        clienteSeleccionadoId = 0;
+        servicioSeleccionadoId = 0;
+        fechaCita = DateTime.Now;
+
+        await CargarDatosLocales();
+    }
+}

@@ -11,7 +11,6 @@ namespace proyectoEstetica3raParcial.Models
         [Required]
         public int ClienteId { get; set; }
 
-        // El 'null!' le dice a C# que EF Core se encargará de llenar este objeto
         [ForeignKey("ClienteId")]
         public virtual Cliente Cliente { get; set; } = null!;
 

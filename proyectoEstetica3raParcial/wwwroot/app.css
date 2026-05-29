@@ -60,11 +60,11 @@ h1:focus {
     text-align: start;
 }
 :root {
-    /* Paleta de colores de la estética */
-    --primary-color: #DDA7A5; /* Rosa pastel/Blush elegante */
+   
+    --primary-color: #DDA7A5; 
     --primary-hover: #c48c8a;
-    --background-color: #FDFBFB; /* Blanco perla */
-    --text-main: #333333; /* Gris oscuro, más suave que el negro puro */
+    --background-color: #FDFBFB; 
+    --text-main: #333333; 
     --text-muted: #777777;
     --card-bg: #FFFFFF;
 }
@@ -77,14 +77,12 @@ html, body {
     color: var(--text-main);
 }
 
-/* --- Estructura Principal --- */
 .page-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-/* --- Navegación Superior --- */
 .header-estetica {
     display: flex;
     justify-content: space-between;
@@ -113,7 +111,6 @@ html, body {
         color: var(--primary-color);
     }
 
-/* --- Contenedor de las páginas --- */
 .main-content {
     flex: 1;
     padding: 3rem 4rem;
@@ -123,7 +120,6 @@ html, body {
     box-sizing: border-box;
 }
 
-/* --- Footer --- */
 .footer-estetica {
     text-align: center;
     padding: 1.5rem;
@@ -133,7 +129,6 @@ html, body {
     border-top: 1px solid #f0f0f0;
 }
 
-/* --- Estilos para Tablas y Tarjetas (Te servirán para Clientes y Citas) --- */
 .card-estetica {
     background: var(--card-bg);
     border-radius: 12px;
@@ -158,7 +153,6 @@ html, body {
         transform: translateY(-2px);
     }
 
-/* Ocultar el UI de error de Blazor por defecto para que no arruine el diseño */
 #blazor-error-ui {
     display: none !important;
 }
