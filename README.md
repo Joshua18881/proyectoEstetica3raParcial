@@ -1,4 +1,5 @@
 # Evidencia de Entrega - Proyecto 3a Evaluación Parcial
+Link a github: https://github.com/Joshua18881/proyectoEstetica3raParcial/edit/main/README.md 
 
 Este repositorio contiene el código fuente del Sistema de Información Web desarrollado en Blazor Server para la materia de **Programación para Web** (4° Semestre, Grupo E, Ingeniería de Software).
 
