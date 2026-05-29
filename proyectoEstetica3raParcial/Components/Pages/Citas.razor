@@ -9,7 +9,9 @@
 <PageTitle>Agendar Cita - Glamour Spa</PageTitle>
 
 <div class="card-estetica" style="margin: 1rem; padding: 2rem;">
-    <h2 style="color: var(--primary-color); margin-bottom: 0.5rem;">🗓️ Agendar Nueva Cita</h2>
+    <h2 style="color: var(--primary-color); margin-bottom: 0.5rem;">
+        @(citaIdEnEdicion > 0 ? "✏️ Editar Cita" : "🗓️ Agendar Nueva Cita")
+    </h2>
     <p style="color: var(--text-muted); margin-bottom: 2rem;">Pantalla de integración: Vincula Clientes de tu BD con Servicios de la API.</p>
 
     @if (!string.IsNullOrEmpty(mensajeExito))
@@ -60,8 +62,14 @@
     </div>
 
     <div style="text-align: right; margin-top: 2rem;">
+        @if (citaIdEnEdicion > 0)
+        {
+            <button class="btn-estetica" @onclick="CancelarEdicion" style="padding: 1rem 1.5rem; background-color: #6c757d; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 1rem;">
+                ❌ Cancelar
+            </button>
+        }
         <button class="btn-estetica" @onclick="GuardarCita" style="padding: 1rem 2.5rem; background-color: var(--primary-color); color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
-            🗓️ Confirmar y Registrar Cita
+            @(citaIdEnEdicion > 0 ? "🔄 Actualizar Cita" : "🗓️ Confirmar y Registrar Cita")
         </button>
     </div>
 </div>
@@ -75,13 +83,14 @@
                 <th style="padding: 0.8rem;">Cliente</th>
                 <th style="padding: 0.8rem;">Fecha y Hora</th>
                 <th style="padding: 0.8rem;">Estado</th>
+                <th style="padding: 0.8rem;">Acciones</th>
             </tr>
         </thead>
         <tbody>
             @if (historialCitas == null || !historialCitas.Any())
             {
                 <tr>
-                    <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
                         No hay citas agendadas en el sistema.
                     </td>
                 </tr>
@@ -95,6 +104,10 @@
                         <td style="padding: 0.8rem;">@(cita.Cliente != null ? $"{cita.Cliente.Nombre} {cita.Cliente.Apellido}" : "Cliente Anonimo")</td>
                         <td style="padding: 0.8rem;">@cita.FechaHora.ToString("dd/MM/yyyy hh:mm tt")</td>
                         <td style="padding: 0.8rem;"><span style="background: #fff3cd; color: #856404; padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.85rem;">@cita.Estado</span></td>
+                        <td style="padding: 0.8rem;">
+                            <button @onclick="() => PrepararEdicion(cita)" style="background-color: #007bff; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; margin-right: 0.5rem;">✏️ Editar</button>
+                            <button @onclick="() => EliminarCita(cita.CitaId)" style="background-color: #dc3545; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer;">🗑️ Eliminar</button>
+                        </td>
                     </tr>
                 }
             }
@@ -107,6 +120,7 @@
     private List<ServicioSalud>? listaServiciosApi;
     private List<Cita>? historialCitas;
 
+    private int citaIdEnEdicion = 0; // NUEVO: Controla si estamos editando
     private int clienteSeleccionadoId = 0;
     private int servicioSeleccionadoId = 0;
     private DateTime fechaCita = DateTime.Now;
@@ -122,7 +136,13 @@
     {
         using var context = DbFactory.CreateDbContext();
         listaClientes = await context.Clientes.OrderBy(c => c.Nombre).ToListAsync();
-        historialCitas = await context.Citas.Include(c => c.Cliente).OrderByDescending(c => c.CitaId).ToListAsync();
+
+        // NUEVO: Agregamos Include(c => c.Detalles) para poder leer qué servicio tiene la cita al editarla
+        historialCitas = await context.Citas
+            .Include(c => c.Cliente)
+            .Include(c => c.Detalles)
+            .OrderByDescending(c => c.CitaId)
+            .ToListAsync();
     }
 
     private async Task CargarServiciosApi()
@@ -142,40 +162,109 @@
         }
     }
 
+    // NUEVO METODO: Llena el formulario con los datos de la tabla
+    private void PrepararEdicion(Cita cita)
+    {
+        citaIdEnEdicion = cita.CitaId;
+        clienteSeleccionadoId = cita.ClienteId;
+        fechaCita = cita.FechaHora;
+
+        var detalle = cita.Detalles?.FirstOrDefault();
+        servicioSeleccionadoId = detalle != null ? detalle.ProductoApiId : 0;
+
+        mensajeExito = "";
+    }
+
+    // NUEVO METODO: Limpia el formulario
+    private void CancelarEdicion()
+    {
+        citaIdEnEdicion = 0;
+        clienteSeleccionadoId = 0;
+        servicioSeleccionadoId = 0;
+        fechaCita = DateTime.Now;
+        mensajeExito = "";
+    }
+
     private async Task GuardarCita()
     {
         if (clienteSeleccionadoId == 0 || servicioSeleccionadoId == 0) return;
 
         using var context = DbFactory.CreateDbContext();
-
-        var nuevaCita = new Cita
-        {
-            ClienteId = clienteSeleccionadoId,
-            FechaHora = fechaCita, 
-            Estado = "Agendada"
-        };
-
-        context.Citas.Add(nuevaCita);
-        await context.SaveChangesAsync();
-
         var servicioIdApi = listaServiciosApi?.FirstOrDefault(s => s.Id == servicioSeleccionadoId);
 
-        var detalle = new DetalleServicio
+        if (citaIdEnEdicion == 0)
         {
-            CitaId = nuevaCita.CitaId,
-            ProductoApiId = servicioSeleccionadoId,
-            Cantidad = 1,
-            Precio = servicioIdApi?.Precio ?? 0
-        };
+            // --- CREAR NUEVA CITA ---
+            var nuevaCita = new Cita
+            {
+                ClienteId = clienteSeleccionadoId,
+                FechaHora = fechaCita,
+                Estado = "Agendada"
+            };
 
-        context.DetallesServicios.Add(detalle);
-        await context.SaveChangesAsync();
+            context.Citas.Add(nuevaCita);
+            await context.SaveChangesAsync();
 
-        mensajeExito = "✨ ¡Cita agendada con éxito! Se guardó en Azure SQL vinculando el servicio de la API.";
-        clienteSeleccionadoId = 0;
-        servicioSeleccionadoId = 0;
-        fechaCita = DateTime.Now;
+            var detalle = new DetalleServicio
+            {
+                CitaId = nuevaCita.CitaId,
+                ProductoApiId = servicioSeleccionadoId,
+                Cantidad = 1,
+                Precio = servicioIdApi?.Precio ?? 0
+            };
 
-        await CargarDatosLocales();
+            context.DetallesServicios.Add(detalle);
+            await context.SaveChangesAsync();
+
+            mensajeExito = "✨ ¡Cita agendada con éxito!";
+        }
+        else
+        {
+            // --- ACTUALIZAR CITA EXISTENTE ---
+            var citaAActualizar = await context.Citas.Include(c => c.Detalles).FirstOrDefaultAsync(c => c.CitaId == citaIdEnEdicion);
+            if (citaAActualizar != null)
+            {
+                citaAActualizar.ClienteId = clienteSeleccionadoId;
+                citaAActualizar.FechaHora = fechaCita;
+
+                var detalle = citaAActualizar.Detalles.FirstOrDefault();
+                if (detalle != null)
+                {
+                    detalle.ProductoApiId = servicioSeleccionadoId;
+                    detalle.Precio = servicioIdApi?.Precio ?? 0;
+                    context.DetallesServicios.Update(detalle);
+                }
+
+                context.Citas.Update(citaAActualizar);
+                await context.SaveChangesAsync();
+                mensajeExito = "🔄 ¡Cita actualizada correctamente!";
+            }
+        }
+
+        CancelarEdicion(); // Limpiamos los campos
+        await CargarDatosLocales(); // Recargamos la tabla
+    }
+
+    // NUEVO METODO: Eliminar
+    private async Task EliminarCita(int citaId)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var cita = await context.Citas.Include(c => c.Detalles).FirstOrDefaultAsync(c => c.CitaId == citaId);
+
+        if (cita != null)
+        {
+            // Primero borramos los detalles para que no marque error de relación en SQL
+            if (cita.Detalles != null && cita.Detalles.Any())
+            {
+                context.DetallesServicios.RemoveRange(cita.Detalles);
+            }
+
+            // Luego borramos la cita
+            context.Citas.Remove(cita);
+            await context.SaveChangesAsync();
+
+            mensajeExito = "🗑️ Cita eliminada correctamente.";
+            await CargarDatosLocales();
+        }
     }
 }

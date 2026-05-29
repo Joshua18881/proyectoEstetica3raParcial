@@ -1,11 +1,17 @@
 ﻿@page "/clientes"
+@using proyectoEstetica3raParcial.Models
+@using proyectoEstetica3raParcial.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
 @rendermode InteractiveServer
 
 <PageTitle>Gestión de Clientes - Glamour Spa</PageTitle>
 
 <div style="display: flex; gap: 2rem;">
     <div class="card-estetica" style="flex: 1;">
-        <h3 style="color: var(--primary-color);">Registrar Cliente</h3>
+        <h3 style="color: var(--primary-color);">
+            @(nuevoCliente.ClienteId == 0 ? "Registrar Cliente" : "✏️ Editar Cliente")
+        </h3>
 
         @if (!string.IsNullOrEmpty(mensajeStatus))
         {
@@ -35,7 +41,17 @@
                     <input type="email" style="width: 100%; padding: 0.6rem; border-radius: 5px; border: 1px solid #ccc;" @bind="nuevoCliente.Email" required />
                 </div>
 
-                <button type="submit" class="btn-estetica" style="margin-top: 1rem;">💾 Guardar en Azure SQL</button>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    @if (nuevoCliente.ClienteId > 0)
+                    {
+                        <button type="button" class="btn-estetica" @onclick="CancelarEdicion" style="flex: 1; background-color: #6c757d; color: white; padding: 0.8rem; border: none; border-radius: 5px; cursor: pointer;">
+                            ❌ Cancelar
+                        </button>
+                    }
+                    <button type="submit" class="btn-estetica" style="flex: 2; background-color: var(--primary-color); color: white; padding: 0.8rem; border: none; border-radius: 5px; cursor: pointer;">
+                        @(nuevoCliente.ClienteId == 0 ? "💾 Guardar en Azure SQL" : "🔄 Actualizar Cliente")
+                    </button>
+                </div>
             </div>
         </EditForm>
     </div>
@@ -73,7 +89,8 @@
                             <td style="padding: 0.8rem;">@cliente.Telefono</td>
                             <td style="padding: 0.8rem;">@cliente.Email</td>
                             <td style="padding: 0.8rem;">
-                                <button style="background: transparent; border: none; cursor: pointer; color: #F44336;" @onclick="() => EliminarCliente(cliente.ClienteId)">🗑️ Eliminar</button>
+                                <button style="background: transparent; border: none; cursor: pointer; color: #007bff; margin-right: 0.5rem; font-weight: bold;" @onclick="() => PrepararEdicion(cliente)">✏️ Editar</button>
+                                <button style="background: transparent; border: none; cursor: pointer; color: #F44336; font-weight: bold;" @onclick="() => EliminarCliente(cliente.ClienteId)">🗑️ Eliminar</button>
                             </td>
                         </tr>
                     }
@@ -96,21 +113,48 @@
     private async Task CargarClientes()
     {
         using var context = DbFactory.CreateDbContext();
-        // CORRECCIÓN: Usamos ClienteId
         listaClientes = await context.Clientes.OrderByDescending(c => c.ClienteId).ToListAsync();
+    }
+
+    private void PrepararEdicion(Cliente cliente)
+    {
+        nuevoCliente = new Cliente
+        {
+            ClienteId = cliente.ClienteId,
+            Nombre = cliente.Nombre,
+            Apellido = cliente.Apellido,
+            Telefono = cliente.Telefono,
+            Email = cliente.Email,
+            FechaRegistro = cliente.FechaRegistro
+        };
+        mensajeStatus = "";
+    }
+
+    private void CancelarEdicion()
+    {
+        nuevoCliente = new Cliente { FechaRegistro = DateTime.Now };
+        mensajeStatus = "";
     }
 
     private async Task GuardarCliente()
     {
         using var context = DbFactory.CreateDbContext();
 
-        context.Clientes.Add(nuevoCliente);
+        if (nuevoCliente.ClienteId == 0)
+        {
+            context.Clientes.Add(nuevoCliente);
+            mensajeStatus = "¡Cliente registrado con éxito en la nube! ✨";
+        }
+        else
+        {
+            context.Clientes.Update(nuevoCliente);
+            mensajeStatus = "🔄 ¡Cliente actualizado correctamente!";
+        }
+
         await context.SaveChangesAsync();
 
-        mensajeStatus = "¡Cliente registrado con éxito en la nube! ✨";
-
+        // Limpiamos los campos
         nuevoCliente = new Cliente { FechaRegistro = DateTime.Now };
-
         await CargarClientes();
     }
 
@@ -123,6 +167,13 @@
         {
             context.Clientes.Remove(cliente);
             await context.SaveChangesAsync();
+
+            if (nuevoCliente.ClienteId == id)
+            {
+                CancelarEdicion();
+            }
+
+            mensajeStatus = "🗑️ Cliente eliminado de la base de datos.";
             await CargarClientes();
         }
     }
